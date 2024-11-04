@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% load static %}
+{% block contents %}
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>録音管理</title>
+    <style>
+        /* 全体的なスタイル */
+        body {
+            font-family: 'Meiryo', sans-serif;
+            text-align: center;
+        }
+
+        /* ボタンのスタイル */
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        /* 特殊なスタイルのボタン (再生ボタン等) */
+        .history-button {
+            padding: 5px 10px;
+            background-color: #008CBA;
+            font-size: 14px;
+        }
+
+        /* ピッチ表示と波形表示のキャンバス */
+        #pitch-canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+            width: 600px;
+            height: 200px;
+        }
+
+        /* 録音履歴リスト */
+        #history {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>録音練習</h1>
+<p id="content-label">ページと問題を選択してください。</p>
+
+<button id="start-recording" class="button">録音開始</button>
+<button id="stop-recording" class="button" disabled>録音停止</button>
+<button id="play-recording" class="button" disabled>再生</button>
+<button id="pitch-plot" class="button">ピッチ表示</button>
+<button id="waveform-plot" class="button">波形表示</button>
+<button id="show-history" class="button">録音履歴</button>
+<button id="teacher-listening" class="button">お手本再生</button>
+
+<div id="history" style="display: none;">
+    <h2>録音履歴</h2>
+    <ul id="history-list"></ul>
+</div>
+
+<audio id="teacher-audio" style="display: none;"></audio>
+<!-- ピッチ表示用のCanvas -->
+<canvas id="pitch-canvas" width="600" height="200" style="border:1px solid black; margin-top: 20px;"></canvas>
+
+<script>
+    const content = {
+        57: {1: "カレカ゜(彼が)", 2: "ショーカ゜ッコー(小学校)", 3: "マンカ゜(漫画)", 4: "シンキ゜(審議)", 5:"アイカキ゜(合鍵)",
+             6:"シケ゜ン(資源)", 7:"シコ゜ト(仕事)", 8:"ニケ゜コ゜シ(逃げ腰)", 9:"職場の窓越しに五重塔が眺められる。", 10:"仕事帰りの夕暮れに高等学校時代の友達にあった。"}, 
+        58: {1: "キシャ(記者)", 2: "チョサクケン(著作権)", 3: "ソウデス (そうです)", 4: "シカク (視覚)", 5:"タスケル (助ける)",
+             6:"チチオヤ (父親)", 7:"タツタアゲ (竜田揚げ)", 8:"フクシ (福祉)", 9:"白い服を着て一人でタクシーに乗って出かけます。", 10:"下宿から入学式の会場に直接行きます。"},
+        68: {1:"大きなめがねをかけた男の人がいます", 2:"彼は大声を上げながら逃げる男の後を追いかけた",
+             3:"天城のシャクナゲは私の背の高さぐらいの花がたくさん咲いている木でした", 4:"由利は目を輝かせて話す翔太を見つめていました",
+            5: "啓子は花屋の娘で同級生の絵里子と出かけましたが帰りが遅いので父は花屋に聞きに行きました"},
+        75: {1:"東北地方では今夜以降、非常に激しい雨が降る見込みです。雨量は所により２００ミリを超える見込みで、気象庁は警戒を呼びかけています。",
+             2:"カルテをコンピューターで管理するためには、従来の紙カルテをデーターにする必要があります。それには、従来の紙カルテを参照しながら電子カルテに記入していく方法が一般的です。",
+            3: "散歩に出かけて間もなく、にわか雨が降り始めた。次の瞬間には土砂降りになりずぶ濡れになったが、水の好きなラブラドール・レトリーバーの愛犬はシャワーに入ったかのように大喜びだった。そういえば、英語で土砂降りのことをキャッツ・アンド・ドッグスといったっけ。"},
+        77: {1:"草を食む馬(kusaohamu uma)", 2:"赤い漁火(akai isaribi)", 3:"可愛い犬がいた(kawaii inugaita)", 4:"問題を起こす(mondaio okosu)",
+            5:"効果が上がる(kokaga agaru)", 6:"母へ絵葉書を送る(hahae ehagakio okuru)", 7:"敬老の日、私は母を負ぶって出かけました(hahao obutte)",
+            8:"放牧場では、寝ている馬のそばをそっと通りました(neteiru uma)", 9:"親は、いつも子どものことを思っています(kodomonokotoo omotte)",
+            10:"長生きの秘訣は、生き急ぎをしないことです(iki isogi)"},
+        80: {1:"白鵬は今日も勝ちました。", 2:"学校は塾の次に好きです。",3:"車より自転車の方が自然を感じられます。",
+             4:"待ち合わせ場所は地下鉄の飯田橋駅改札口です。",5:"嘘には、人を喜ばせる嘘、驚かせる嘘、楽しませる嘘、悲しませる嘘などがあります。"},
+        82: {1:"ネコのタマは孫の次に可愛い私の家族です。", 2:"もし私が犬だったらこの頃のペットブームをどんな風に考えるでしょうか。",3: "ハンバーガーショップで食事を済ませてから出かけます。",
+            4:"いつも応援しているよ。あなたなら大丈夫。期待しているよ。どの言葉も私にとっては励みになった。",5:"「おれはヒーローになる！」そう言って、近所の悪ガキとやんちゃしていた少年の日々。あれから１５年。猛勉強の末、私は医者になった。",
+            6:"扉がすうっと開いて、母を驚かせようと父がゆっくり入ってきた。", 7:"山道を友人と2人で散策中、森の中に迷い込んでしまい、辺りが急に暗くなり、どうなる事かとはらはらしていたがやがて２kmほど進むと、住宅街の灯りが見え、急いで山を下りた。",
+            8: "検診を終えて、夕方、地区長として、前日に集めた会費を銀行に持って行こうとしていた私に、妻の呼びかける声が居間から聞こえた。"},
+        84: {1:"窓から昇ってくる朝日と富士山が見えました。", 2:"家を出るとき捨てるゴミと犬を連れて出ました。", 3:"野外音楽堂でのコンサートは、日本人と外国人５０人が集まって大盛況でした。",
+            4:"私は窓辺にたたずんで沈んで行く夕日と街並みを見ていました。", 5:"飛行機のハイジャック犯は給油し、目的地に向かって飛べと要求しました。"}
+    }
+
+    // クエリパラメータからページと問題番号を取得
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page');
+    const question = urlParams.get('question');
+    const userName = "sampleUser";
+
+    // ページと問題番号に対応するテキストを表示
+    const contentLabel = document.getElementById("content-label");
+    const text = content[page]?.[question] || "該当するテキストがありません。";
+    contentLabel.innerText = `${page}ページ, 問題${question} - 録音内容:${text}`;
+
+    // 録音と再生ボタンの制御
+    // let isRecording = false;
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBlob; // 録音データを保持する変数
+    let audioUrl;  // 録音データの再生用URL
+
+    var recordingsHistory ={};
+
+    // 録音開始
+    document.getElementById("start-recording").addEventListener("click", async () => {
+        audioChunks = []; // 新しい録音のためにクリア
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        mediaRecorder.addEventListener("dataavailable", event => {
+            audioChunks.push(event.data);
+        });
+
+        document.getElementById("start-recording").disabled = true;
+        document.getElementById("stop-recording").disabled = false;
+        document.getElementById("play-recording").disabled = true;
+        // alert("録音を開始しました。");
+    });
+
+    // 録音停止
+    document.getElementById("stop-recording").addEventListener("click", () => {
+        mediaRecorder.stop();
+
+        mediaRecorder.addEventListener("stop", () => {
+            audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            audioUrl = URL.createObjectURL(audioBlob);
+
+            // ファイル名を生成（ページ数、問題番号、日時、ユーザー名を含む）
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `${userName}_page${page}_question${question}_${timestamp}.wav`;
+
+            // ページ数と問題番号ごとに録音履歴を追加
+            if (!recordingsHistory[page]) {
+                recordingsHistory[page] = {};  // ページが存在しない場合は初期化
+            }
+            if (!recordingsHistory[page][question]) {
+                recordingsHistory[page][question] = [];  // 問題番号が存在しない場合は初期化
+            }
+            recordingsHistory[page][question].push({ fileName, audioBlob });  // 録音履歴にファイル名を追加
+
+            updateHistoryList();
+
+            document.getElementById("start-recording").disabled = false;
+            document.getElementById("stop-recording").disabled = true;
+            document.getElementById("play-recording").disabled = false;
+            alert("録音を停止しました。録音が再生できます。");
+        });
+    });
+
+    document.getElementById("play-recording").addEventListener("click", () => {
+        if (audioUrl) {
+            const audio = new Audio(audioUrl);  // AudioオブジェクトにURLを渡して再生
+            audio.play();  // 再生
+        } else {
+            alert("再生する録音がありません。");
+        }
+    });
+
+    document.getElementById("pitch-plot").addEventListener("click", () => {
+        if (audioBlob) {
+            const formData = new FormData();
+            formData.append('audio_file', audioBlob, 'recording.wav');
+
+            fetch('/app_folder/plot_pitch/', {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => {
+            if (!response.ok) {
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || "サーバーエラーが発生しました。");
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.image_url) {
+                document.getElementById("pitch-image").src = data.image_url;
+            }
+        })
+        .catch(error => {
+            console.error("通信エラー:", error);
+            alert(error.message);
+        });
+    } else {
+        alert("ピッチを表示する音声がありません。");
+    }
+});
+
+    // // ピッチ表示ボタンのイベントリスナー
+    // document.getElementById("pitch-plot").addEventListener("click", () => {
+    //     if (audioBlob) {
+    //         ajax({
+    //             url:"./recording.py"
+    //         })
+    //     } else {
+    //         alert("ピッチを表示する音声がありません。");
+    //     }
+    // });
+
+    // // ピッチ表示用関数
+    // function displayPitch(audioBlob) {
+    //     const audioContext = new AudioContext();
+    //     const analyser = audioContext.createAnalyser();
+    //     analyser.fftSize = 2048;
+
+    //     // オーディオデータをデコードし、ピッチを描画
+    //     audioBlob.arrayBuffer().then(buffer => {
+    //         audioContext.decodeAudioData(buffer, decodedData => {
+    //             const source = audioContext.createBufferSource();
+    //             source.buffer = decodedData;
+    //             source.connect(analyser);
+    //             analyser.connect(audioContext.destination);
+    //             source.start();
+
+    //             // Canvasのセットアップ
+    //             const canvas = document.getElementById("pitch-canvas");
+    //             const canvasContext = canvas.getContext("2d");
+
+    //             // ピッチデータを描画する関数
+    //             function drawPitch() {
+    //                 const pitchData = new Uint8Array(analyser.frequencyBinCount);
+    //                 analyser.getByteFrequencyData(pitchData);
+
+    //                 // Canvasをクリア
+    //                 canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+    //                 // 横軸がフレーム数、縦軸が周波数
+    //                 const sliceWidth = canvas.width / pitchData.length;
+
+    //                 canvasContext.beginPath();
+    //                 for (let i = 0; i < pitchData.length; i++) {
+    //                     const x = i * sliceWidth;
+    //                     const y = canvas.height - (pitchData[i] / 256) * canvas.height;
+
+    //                     if (i === 0) {
+    //                         canvasContext.moveTo(x, y);
+    //                     } else {
+    //                         canvasContext.lineTo(x, y);
+    //                     }
+    //                 }
+
+    //                 canvasContext.lineWidth = 2;
+    //                 canvasContext.strokeStyle = 'rgb(0, 0, 255)';
+    //                 canvasContext.stroke();
+    //             }
+
+    //             // ピッチデータを一度だけ描画して静的表示
+    //             drawPitch();
+    //         });
+    //     });
+    // }
+
+                // 時系列データを保持し、描画
+    //             const pitchData = new Uint8Array(analyser.frequencyBinCount);
+    //             analyser.getByteFrequencyData(pitchData);
+    //             const sliceWidth = canvas.width / pitchData.length;
+            
+    //             // ピッチデータを描画する関数
+    //             function drawPitch() {
+    //                 analyser.getByteFrequencyData(pitchData);
+    //                 canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    //                 canvasContext.beginPath();
+    //                 const sliceWidth = canvas.width / pitchData.length;
+
+    //                 for (let i = 0; i < pitchData.length; i++) {
+    //                     const barHeight = pitchData[i];
+    //                     const x = i * sliceWidth;
+    //                     const y = canvas.height - (barHeight / 256) * canvas.height;
+
+    //                     if (i === 0) {
+    //                         canvasContext.moveTo(x, y);
+    //                     } else {
+    //                         canvasContext.lineTo(x, y);
+    //                     }
+    //                 }
+
+    //                 canvasContext.lineWidth = 2;
+    //                 canvasContext.strokeStyle = 'rgb(0, 0, 255)';
+    //                 canvasContext.stroke();
+    //             }
+
+    //             // ピッチ表示用のコンテナを表示
+    //             document.getElementById("pitch-container").style.display = "block";
+    //             drawPitch(); // 初回描画
+    //         });
+    //     });
+    // }
+
+            // function drawPitch() {
+            //     analyser.getByteFrequencyData(pitchData);
+
+                // Canvasをクリア
+//                 canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+//                 canvasContext.beginPath();
+
+//                 // 横軸が時間、縦軸が周波数のピッチデータ描画
+//                 for (let i = 0; i < pitchData.length; i++) {
+//                     const barHeight = pitchData[i];
+//                     const x = i * sliceWidth;
+//                     const y = canvas.height - (barHeight / 256) * canvas.height;
+
+//                     if (i === 0) {
+//                         canvasContext.moveTo(x, y);
+//                     } else {
+//                         canvasContext.lineTo(x, y);
+//                     }
+//                 }
+
+//                 canvasContext.lineWidth = 2;
+//                 canvasContext.strokeStyle = 'rgb(0, 0, 255)';
+//                 canvasContext.stroke();
+
+//                 // requestAnimationFrame(drawPitch); // 描画を繰り返す
+
+//             // drawPitch(); // 描画開始
+//         });
+//     });
+// }
+//         const source = audioContext.createBufferSource();
+//         audioBlob.arrayBuffer().then(buffer => {
+//             audioContext.decodeAudioData(buffer, decodedData => {
+//                 source.buffer = decodedData;
+//                 source.connect(analyser);
+//                 analyser.connect(audioContext.destination);
+//                 source.start(0);
+
+//                 // Canvasのセットアップ
+//                 const canvas = document.getElementById("pitch-canvas");
+//                 const canvasContext = canvas.getContext("2d");
+
+//                 // 周波数データ取得と描画の開始
+//                 const pitchData = new Uint8Array(analyser.frequencyBinCount);
+
+//                 function drawPitch() {
+//                     analyser.getByteFrequencyData(pitchData);
+
+//                 // Canvasのクリア
+//                 canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+//                 // データを描画
+//                 canvasContext.fillStyle = 'rgb(0, 0, 0)';
+//                 const barWidth = (canvas.width / pitchData.length) * 2.5;
+//                 let x = 0;
+
+//                 for (let i = 0; i < pitchData.length; i++) {
+//                     const barHeight = pitchData[i];
+//                     canvasContext.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+//                     canvasContext.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
+//                     x += barWidth + 1;
+//                 }
+
+//                 requestAnimationFrame(drawPitch); // アニメーションを繰り返す
+//             }
+            
+//             drawPitch();  // 描画開始
+//         });
+//     });
+// }
+
+// ピッチ表示ボタンにイベントを追加
+// document.getElementById("pitch-plot").addEventListener("click", () => {
+//         if (audioBlob) {
+//             displayPitch(audioBlob);
+//         } else {
+//             alert("ピッチを表示する録音がありません。");
+//         }
+//     });
+
+
+// 波形表示用関数
+function displayWaveform(audioBlob) {
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+
+    // 録音データをデコードし、波形を描画
+    audioBlob.arrayBuffer().then(buffer => {
+        audioContext.decodeAudioData(buffer, decodedData => {
+            const source = audioContext.createBufferSource();
+            source.buffer = decodedData;
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            source.start();
+
+            const waveformCanvas = document.getElementById("pitch-canvas");
+            const canvasContext = waveformCanvas.getContext("2d");
+            const waveformData = new Uint8Array(analyser.fftSize);
+
+            function drawWaveform() {
+                analyser.getByteTimeDomainData(waveformData);
+
+                // Canvasのクリア
+                canvasContext.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+
+                // 波形を描画
+                canvasContext.lineWidth = 2;
+                canvasContext.strokeStyle = 'rgb(0, 0, 255)';
+                canvasContext.beginPath();
+
+                const sliceWidth = waveformCanvas.width / waveformData.length;
+                let x = 0;
+                for (let i = 0; i < waveformData.length; i++) {
+                    const v = waveformData[i] / 128.0;
+                    const y = (v * waveformCanvas.height) / 2;
+
+                    if (i === 0) {
+                        canvasContext.moveTo(x, y);
+                    } else {
+                        canvasContext.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                canvasContext.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+                canvasContext.stroke();
+
+                // アニメーションを繰り返し
+                requestAnimationFrame(drawWaveform);
+            }
+            drawWaveform();
+        });
+    });
+}
+
+// 波形表示ボタンにイベントを追加
+document.getElementById("waveform-plot").addEventListener("click", () => {
+    if (audioBlob) {
+        displayWaveform(audioBlob);
+    } else {
+        alert("波形を表示する録音がありません。");
+    }
+});
+
+    //             const pitchData = new Uint8Array(analyser.fftSize);
+    //             analyser.getByteFrequencyData(pitchData);
+
+    //             const pitchElement = document.createElement("p");
+    //             pitchElement.innerText = `ピッチ: ${pitchData[0]} Hz`;
+    //             document.body.appendChild(pitchElement);
+    //         });
+    //     });
+    // }
+
+    
+    // 録音履歴の表示更新関数
+    function updateHistoryList() {
+        const historyList = document.getElementById("history-list");
+        historyList.innerHTML = ''; // リストの初期化
+
+        for (const [page, questions] of Object.entries(recordingsHistory)) {
+            for (const [question, recordingsArray] of Object.entries(questions)) {
+                const pageQuestionHeader = document.createElement("li");
+                pageQuestionHeader.textContent = `ページ${page} - 問題${question}:`;
+                historyList.appendChild(pageQuestionHeader);
+
+                recordingsArray.forEach(({ fileName, audioBlob }) => {
+                    const listItem = document.createElement("li");
+                    listItem.style.marginLeft = "20px";
+                    listItem.textContent = fileName;
+
+                // files.forEach(fileName => {
+                //     const listItem = document.createElement("li");
+                //     listItem.style.marginLeft = "20px"; // インデントを追加
+                //     listItem.textContent = fileName;
+                    // historyList.appendChild(listItem);
+
+                    // **録音履歴の音声再生ボタン追加**
+                    const playButton = document.createElement("button");
+                    playButton.textContent = "再生";
+                    playButton.addEventListener("click", () => {
+                        const audio = new Audio(URL.createObjectURL(audioBlob)); // Blobから音声を取得して再生
+                        audio.play();
+                });
+                listItem.appendChild(playButton);
+
+               // ピッチ表示ボタン追加
+                const pitchButton = document.createElement("button");
+                pitchButton.textContent = "ピッチ表示";
+                pitchButton.addEventListener("click", () => {
+                    displayPitch(audioBlob); // 該当録音のピッチ表示
+                });
+                listItem.appendChild(pitchButton);
+
+                historyList.appendChild(listItem);
+                });
+            }
+        }
+    }
+
+    // 録音履歴の表示
+    document.getElementById("show-history").addEventListener("click", () => {
+        document.getElementById("history").style.display = "block";
+    });
+
+    document.getElementById("teacher-listening").addEventListener("click", () => {
+        const randomNames = ["asai", "hirano", "inagaki", "inoue", "mochi", "ohashi", "osada", "sano", "takada", "takahashi", "yamada"];
+        const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
+        const audioUrl = `{% static 'teacher/p' %}${page}/Q${question}/${page}_${question}_${randomName}.wav`;
+        
+        const teacherAudio = document.getElementById("teacher-audio");
+        teacherAudio.src = audioUrl;
+        teacherAudio.style.display = "block";
+        teacherAudio.play();
+    });
+</script>
+
+</body>
+</html>
+{% endblock %}

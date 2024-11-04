@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% load static %}
+{% block contents %}
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* リンクをボタン風にスタイリング */
+        .button-link {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 4px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .button-link:hover {
+            background-color: #45a049;
+        }
+        /* エラーメッセージのスタイル */
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+
+        // 発音者インデックスを取得する関数
+        function getPersonIndex() {
+            return document.getElementById("person").value;
+        }
+
+        function playAudio(page, question, person, pattern='') {
+            // audio 要素と source 要素を取得
+            const audioElement = document.getElementById('btn_audio');
+            const sourceElement = document.getElementById('audio_source');
+            const errorMessageElement = document.getElementById('error_message');
+
+            // エラーメッセージをクリア
+            errorMessageElement.textContent = '';
+
+            // src をページ数と問題番号に応じて更新
+            sourceElement.src = `{% static 'teacher/p' %}${page}/Q${question}/${page}_${question}${pattern}_${person}.wav`;
+
+            // サーバーにファイルの存在確認をリクエスト
+            const url = `../check-audio/${page}/${question}/${person}/${pattern}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        // ファイルが存在する場合は再生
+                        sourceElement.src = data.audio_url;
+                        audioElement.load();
+                        audioElement.play();
+                    } else {
+                        // ファイルが存在しない場合はアラートでエラーメッセージを表示
+                        const message = `${page}ページの問題${question}の音声は存在しません`;
+                        alert(message);
+                        errorMessageElement.textContent = message;
+                    }
+                })
+                .catch(error => {
+                    console.error('エラー:', error);
+                    alert("ファイル確認中にエラーが発生しました。");
+                    errorMessageElement.textContent = "ファイル確認中にエラーが発生しました。";
+                });
+    
+        }
+    </script>
+
+    <!-- 発音者の選択 -->
+    <label for="person">発音者を選択:</label>
+    <select name="person" id="person">
+        <option value="asai">Aさん</option>
+        <option value="hirano">Bさん</option>
+        <option value="inagaki">Cさん</option>
+        <option value="inoue">Dさん</option>
+        <option value="mochi">Eさん</option>
+        <option value="ohashi">Fさん</option>
+        <option value="osada">Gさん</option>
+        <option value="sano">Hさん</option>
+        <option value="takada">Iさん</option>
+        <option value="takahashi">Jさん</option>
+        <option value="yamada">Kさん</option>
+    </select>
+
+    <!-- 音声ファイルのオーディオ要素 -->
+    <audio id="btn_audio">
+        <source id="audio_source" src="{% static 'teacher/p57/Q1/57_1_asai.wav' %}" type="audio/wav">
+    </audio>
+
+    <!-- エラーメッセージ表示用の要素 -->
+    <p id="error_message" class="error-message"></p>
+
+    <div>
+        <!-- 57ページ -->
+        <h3>57ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(57, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 5, getPersonIndex()); return false;">問題5</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 6, getPersonIndex()); return false;">問題6</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 7, getPersonIndex()); return false;">問題7</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 8, getPersonIndex()); return false;">問題8</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 9, getPersonIndex()); return false;">問題9</a>
+            <a href="#" class="button-link" onclick="playAudio(57, 10, getPersonIndex()); return false;">問題10</a>    
+        </div>
+
+        <!-- 58ページ -->
+        <h3>58ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(58, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 5, getPersonIndex()); return false;">問題5</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 6, getPersonIndex()); return false;">問題6</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 7, getPersonIndex()); return false;">問題7</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 8, getPersonIndex()); return false;">問題8</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 9, getPersonIndex()); return false;">問題9</a>
+            <a href="#" class="button-link" onclick="playAudio(58, 10, getPersonIndex()); return false;">問題10</a>
+        </div>
+
+        <!-- 68ページ -->
+        <h3>68ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(68, 1, getPersonIndex(), 'a'); return false;">問題1 パターンA</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 1, getPersonIndex(), 'b'); return false;">問題1 パターンB</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 2, getPersonIndex(), 'a'); return false;">問題2 パターンA</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 2, getPersonIndex(), 'b'); return false;">問題2 パターンB</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 4, getPersonIndex(), 'a'); return false;">問題4 パターンA</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 4, getPersonIndex(), 'b'); return false;">問題4 パターンB</a>
+            <a href="#" class="button-link" onclick="playAudio(68, 5, getPersonIndex()); return false;">Q5</a>
+        </div>
+
+        <!-- 75ページ -->
+        <h3>75ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(75, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(75, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(75, 3, getPersonIndex()); return false;">問題3</a>
+        </div>
+
+        <!-- 77ページ -->
+        <h3>77ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(77, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 5, getPersonIndex()); return false;">問題5</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 6, getPersonIndex()); return false;">問題6</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 7, getPersonIndex()); return false;">問題7</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 8, getPersonIndex()); return false;">問題8</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 9, getPersonIndex()); return false;">問題9</a>
+            <a href="#" class="button-link" onclick="playAudio(77, 10, getPersonIndex()); return false;">問題10</a>
+        </div>
+
+        <!-- 80ページ -->
+        <h3>80ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(80, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(80, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(80, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(80, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(80, 5, getPersonIndex()); return false;">問題5</a>
+        </div>
+
+        <!-- 82ページ -->
+        <h3>82ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(82, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 5, getPersonIndex()); return false;">問題5</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 6, getPersonIndex()); return false;">問題6</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 7, getPersonIndex()); return false;">問題7</a>
+            <a href="#" class="button-link" onclick="playAudio(82, 8, getPersonIndex()); return false;">問題8</a>
+        </div>
+
+        <!-- 84ページ -->
+        <h3>84ページ</h3>
+        <!-- <button>通し再生</button> -->
+        <div>
+            <a href="#" class="button-link" onclick="playAudio(84, 1, getPersonIndex()); return false;">問題1</a>
+            <a href="#" class="button-link" onclick="playAudio(84, 2, getPersonIndex()); return false;">問題2</a>
+            <a href="#" class="button-link" onclick="playAudio(84, 3, getPersonIndex()); return false;">問題3</a>
+            <a href="#" class="button-link" onclick="playAudio(84, 4, getPersonIndex()); return false;">問題4</a>
+            <a href="#" class="button-link" onclick="playAudio(84, 5, getPersonIndex()); return false;">問題5</a>
+            <a href="#" class="button-link" onclick="playAudio(84, 6, getPersonIndex()); return false;">問題6</a>
+        </div>
+    </div>
+
+
+</body>
+</html>
+{% endblock %}

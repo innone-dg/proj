@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+{% extends 'base.html' %}
+{% block contents %}
+<html>
+    <div class="container">
+
+    <form class="form-entry" method="post">{% csrf_token %}
+        <!-- <img class = "mb-4" src="/docs/4.5/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72"> -->
+        <h1 class="h3 mb-3 font-weight-normal">初めての方は新規登録してください。</h1>
+        {% if error %}
+        {{error}}
+        {% endif %}
+        <label for="inputEmail" class="sr-only">Username</label>
+        <input type ="text" id="inputEmail" class="form-control" placeholder="username" name="username_data" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inoutPassword" class="form-control" placeholder="Password" name="password_data" required>
+        <div class="checkbox mb-3"></div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">新規登録</button>
+        <p class="mt-5 mb-3 text-muted"></p>
+    </form>
+    </div>
+
+</html>
+{% endblock %}

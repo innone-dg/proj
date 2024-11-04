@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% block contents %}
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ページ選択</title>
+    <style>
+        /* リンクをボタン風にスタイリング */
+        .button-link {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 4px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .button-link:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>録音練習</h1>
+    <div>
+    <h3>練習したいページ、問題番号のボタンを選択してください。</h3>
+    </div>
+    <!-- 問題番号ごとにボタンを表示 -->
+        <h3>57ページ</h3>
+        <div>
+        <!-- {% for question_number in questions %}
+        <a href="/record_view/ ?page={{ page }}&question={{ question_number }}" class="button-link">
+             問題 {{ question_number }}
+        </a>
+        {% endfor %} -->
+            <a href="/app_folder/record_view/?page=57&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=57&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=57&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=57&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=57&question=5" class="button-link">問題5</a>
+            <a href="/app_folder/record_view/?page=57&question=6" class="button-link">問題6</a>
+            <a href="/app_folder/record_view/?page=57&question=7" class="button-link">問題7</a>
+            <a href="/app_folder/record_view/?page=57&question=8" class="button-link">問題8</a>
+            <a href="/app_folder/record_view/?page=57&question=9" class="button-link">問題9</a>
+            <a href="/app_folder/record_view/?page=57&question=10" class="button-link">問題10</a>
+
+        </div>
+        <h3>58ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=58&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=58&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=58&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=58&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=58&question=5" class="button-link">問題5</a>
+            <a href="/app_folder/record_view/?page=58&question=6" class="button-link">問題6</a>
+            <a href="/app_folder/record_view/?page=58&question=7" class="button-link">問題7</a>
+            <a href="/app_folder/record_view/?page=58&question=8" class="button-link">問題8</a>
+            <a href="/app_folder/record_view/?page=58&question=9" class="button-link">問題9</a>
+            <a href="/app_folder/record_view/?page=58&question=10" class="button-link">問題10</a>
+        </div>
+
+        <!-- <h3>68ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=68&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=68&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=68&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=68&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=68&question=5" class="button-link">問題5</a>
+        </div>
+
+        <h3>75ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=75&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=75&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=75&question=3" class="button-link">問題3</a>
+        </div>
+    
+        <h3>77ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=77&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=77&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=77&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=77&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=77&question=5" class="button-link">問題5</a>
+            <a href="/app_folder/record_view/?page=77&question=6" class="button-link">問題6</a>
+            <a href="/app_folder/record_view/?page=77&question=7" class="button-link">問題7</a>
+            <a href="/app_folder/record_view/?page=77&question=8" class="button-link">問題8</a>
+            <a href="/app_folder/record_view/?page=77&question=9" class="button-link">問題9</a>
+            <a href="/app_folder/record_view/?page=77&question=10" class="button-link">問題10</a>
+        </div>
+
+        <h3>80ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=80&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=80&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=80&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=80&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=80&question=5" class="button-link">問題5</a>
+        </div>
+
+        <h3>82ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=82&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=82&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=82&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=82&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=82&question=5" class="button-link">問題5</a>
+            <a href="/app_folder/record_view/?page=82&question=6" class="button-link">問題6</a>
+            <a href="/app_folder/record_view/?page=82&question=7" class="button-link">問題7</a>
+            <a href="/app_folder/record_view/?page=82&question=8" class="button-link">問題8</a>
+        </div>
+
+        <h3>84ページ</h3>        
+        <div>
+            <a href="/app_folder/record_view/?page=84&question=1" class="button-link">問題1</a>
+            <a href="/app_folder/record_view/?page=84&question=2" class="button-link">問題2</a>
+            <a href="/app_folder/record_view/?page=84&question=3" class="button-link">問題3</a>
+            <a href="/app_folder/record_view/?page=84&question=4" class="button-link">問題4</a>
+            <a href="/app_folder/record_view/?page=84&question=5" class="button-link">問題5</a>
+            <a href="/app_folder/record_view/?page=84&question=6" class="button-link">問題6</a>
+        </div> -->
+</body>
+</html>
+{% endblock %}

@@ -48,5 +48,6 @@ tzdata==2024.2
 urllib3==2.2.3
 wavio==0.0.9
 wheel==0.44.0
+whitenoise
 xmltodict==0.14.2
 zeep==4.3.1

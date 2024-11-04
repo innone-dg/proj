@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'app_config.urls'
@@ -128,8 +129,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # 静的ファイルの呼び出し設定を１番下に追加
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
 PROJECT_NAME = os.path.basename(BASE_DIR)
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] 
-STATIC_ROOT = '/var/www/{}/static'.format(PROJECT_NAME)
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),
+                    os.path.join(BASE_DIR, 'app_folder/static')] 
+#STATIC_ROOT = '/var/www/mysite/static'.format(PROJECT_NAME)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # メディアファイルに関する設定
 MEDIA_URL = '/media/'
